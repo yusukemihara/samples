@@ -1,0 +1,10 @@
+<hoge>
+<h>
+  <embed/>
+  <gage object="gegege" length="40"/>
+  <embed object="string" length="100"/>
+  <embed object="text" length="200"/>
+  <embed object="string" length="300"/>
+</h>
+<p/>
+</hoge>

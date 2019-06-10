@@ -1,0 +1,2 @@
+$ ./configure --prefix /tmp/opt --enable-ipv6 --with-postgres --enable-opencobol --enable-msgd --enable-syslog --enable-client --with-ssl CC1=clang-3.5 CXX1=clang++-3.5
+scan-build

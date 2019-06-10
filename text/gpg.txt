@@ -1,0 +1,30 @@
+mihara@xenial:~$ gpg --list-keys
+gpg: 信用データベースの検査
+gpg: 最小の「ある程度の信用」3、最小の「全面的信用」1、PGP信用モデル
+gpg: 深さ: 0  有効性:   1  署名:   0  信用: 0-, 0q, 0n, 0m, 0f, 1u
+/home/mihara/.gnupg/pubring.gpg
+-------------------------------
+pub   4096R/B13E1E12 2016-07-07
+uid                  yusuke mihara <mihara@netlab.jp>
+sub   4096R/7FFE1129 2016-07-07
+
+
+鍵があるマシン
+１．公開鍵のエクスポート
+　　gpg -o hoge.key --export B13E1E12
+
+２．秘密鍵のエクスポート
+　　gpg -o shoge.key --export-secret-key hogehoge
+
+３．公開鍵の信用情報エクスポート
+　　gpg --export-ownertrust > hogetrus
+
+鍵を移すマシン
+１．公開鍵のインポート
+　　gpg --import hoge.key
+
+２．秘密鍵のインポート
+　　gpg --import --allow-secret-key-import shoge.key
+
+３．公開鍵の信用情報インポート
+　　gpg --import-ownertrust hogetrus

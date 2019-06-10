@@ -1,0 +1,25 @@
+aptly
+
+# リポジトリ作成
+
+  aptly repo create -component jma -distribution=xenial-test xenial-test
+
+# パッケージ登録
+
+aptly repo add xenial-test -remove-files DIR
+
+aptly repo include -no-remove-files -accept-unsigned -repo=xenial-test panda_2.0.0+p32-u4jma1_amd64.changes
+
+# 新規公開
+
+aptly publish repo -gog-key= xenial-test
+
+# 公開更新
+
+aptly publish update xenial-test
+
+# リポジトリ削除
+
+aptly publish drop xenial-test
+aptly repo drop xenial-test
+aptly db cleanup

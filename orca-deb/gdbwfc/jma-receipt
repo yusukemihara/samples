@@ -1,0 +1,311 @@
+#! /bin/bash
+
+### BEGIN INIT INFO
+# Provides:             jma-receipt jma-receipt-hosp
+# Required-Start:       $local_fs $network $time
+# Required-Stop:        $local_fs $network $time
+# Should-Start:         $syslog
+# Should-Stop:          $syslog
+# Default-Start:        2 3 4 5 
+# Default-Stop:         0 1 6
+# Short-Description:    jma-receipt server deamons
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+export PATH
+
+DESC=jma-receipt
+
+RUN_GLAUTH=false
+RUN_MONITOR=true
+RUN_GLSERVER=true
+
+ORCAETC=/etc/jma-receipt
+if [ -f "$ORCAETC"/jma-receipt.env ]
+then
+    . "$ORCAETC"/jma-receipt.env
+fi
+
+ORCAVAR=/var/run/jma-receipt
+mkdir -p ${ORCAVAR}
+chown "$ORCAUSER":"$ORCAGROUP" "$ORCAVAR"
+chmod 755 "$ORCAVAR"
+
+ORCATMPDIR=/tmp/jma-receipt
+
+GLAUTH="$PANDALIB"/sbin/glauth
+GLSERVER="$PANDALIB"/sbin/glserver
+MONITOR="$PANDALIB"/sbin/monitor
+PASSWDFILE="$ORCAETC"/passwd
+
+CLAIM_SERVERDIR="$ORCALIBDIR"/scripts/claim/rb
+
+KILLALL=/usr/bin/killall
+
+GLSERVER_GLAUTH_URI=''
+GLSERVER_CACHE="$ORCATMPDIR"/glserver.cache
+
+if [ "$RUN_GLSERVER" = true ];
+then
+  GLSERVER_OPT='-glserver -api'
+  GLSERVER_OPT="$GLSERVER_OPT -screen $PATCHSCREENDIR:$SCREENDIR"
+  GLSERVER_OPT="$GLSERVER_OPT -glcache $GLSERVER_CACHE"
+  if [ "$GLSERVER_SSL" = true ];
+  then
+    CAfile=/etc/ssl/certs/gl-cacert.pem
+    if [ ! -f $CAfile ]
+    then
+      if [ -f /etc/ssl/gl-cacert.pem ]
+      then
+        CAfile=/etc/ssl/gl-cacert.pem
+      fi
+    fi
+    GLSERVER_GLAUTH_URI='api://localhost/session/session_start'
+    GLSERVER_OPT="$GLSERVER_OPT -glssl -glcafile $CAfile -glcert /etc/jma-receipt/glserver.p12"
+  else
+    if [ "$RUN_GLAUTH" = false ];
+    then
+      GLSERVER_GLAUTH_URI='api://localhost/session/session_start'
+    fi
+  fi
+  GLSERVER_OPT="$GLSERVER_OPT -glauth $GLSERVER_GLAUTH_URI"
+  if [ "$NUMERICHOST" = true ];
+  then
+      GLSERVER_OPT="$GLSERVER_OPT -numeric"
+  fi
+else
+  GLSERVER_OPT=''
+fi
+
+
+schema_check() {
+# check. execute database schema change processiong
+if [ -e "$ORCAETC"/database-non-upgrade ]
+then
+    echo
+    echo "****************************************************"
+    echo "*                                                  *"
+    echo "* Don't execute database schema change processing. *"
+    echo "*                                                  *"
+    echo "* Execute jma-setup manually.                      *"
+    echo "* $ sudo jma-setup                                 *"
+    echo "*                                                  *"
+    echo "* Cancel {$1} $DESC daemon.               *"
+    echo "*                                                  *"
+    echo "****************************************************"
+    echo
+    exit 0
+fi
+}
+
+plugin_check() {
+  su - ${ORCAUSER} -c "${BINDIR}/plugin_check.sh"
+}
+
+test -f "$GLAUTH" || exit 0
+test -f "$MONITOR" || exit 0
+
+. /lib/lsb/init-functions
+
+# set -e
+
+case "$1" in
+  start)
+  	schema_check "$1"
+	plugin_check
+	log_daemon_msg "Starting $DESC:"
+	logger "Starting $DESC:"
+
+	rm -fr "$ORCATMPDIR"
+	mkdir "$ORCATMPDIR"
+	chown "$ORCAUSER":"$ORCAGROUP" "$ORCATMPDIR"
+        chmod 700 "$ORCATMPDIR"
+
+	#
+	# glauth
+	#
+	if [ "$RUN_GLAUTH" = true ]
+	then
+		NAME=`basename "$GLAUTH"`
+		log_daemon_msg "Starting $NAME:"
+		start-stop-daemon --start --background --quiet -k 022 \
+			--chuid "$ORCAUSER":"$ORCAGROUP" \
+			--pidfile "$ORCAVAR"/"$NAME".pid --make-pidfile \
+			--exec "$GLAUTH" -- \
+			-password "$PASSWDFILE"
+		status=$?
+		log_end_msg $status
+		echo -n " $NAME"
+	fi
+
+	#
+	# monitor
+	#
+	if [ "$RUN_MONITOR" = true ]
+	then
+		NAME=`basename "$MONITOR"`
+		log_daemon_msg "Starting $NAME:"
+		COB_LIBRARY_PATH="$SITELIBDIR":"$PATCHLIBDIR":"$ORCALIBDIR":"$PANDALIB"
+		export COB_LIBRARY_PATH
+		MONITOR_OPT='-tempdirroot /tmp/jma-tempdir'
+		if [ "$RUN_REDIRECTOR" = true ]
+		then
+			MONITOR_OPT="$MONITOR_OPT -redirector ON"
+		fi
+		start-stop-daemon --start --background --quiet -k 022 \
+			--chuid "$ORCAUSER":"$ORCAGROUP" \
+			--pidfile "$ORCAVAR"/"$NAME".pid --make-pidfile \
+			--exec "$MONITOR" -- \
+			-dir "$LDDIRECTORY" -restart -interval 1 -wfcwait 5 -retry 3 \
+			$MONITOR_OPT \
+			$GLSERVER_OPT 
+		status=$?
+		log_end_msg $status
+		echo -n " $NAME"
+		sleep 3
+		/usr/local/sbin/gdbwfc.sh &
+	fi
+#-WfcPath /tmp/opt/sbin/wfc \
+#-GlsPath /tmp/opt/sbin/glserver \
+
+	#
+	# claim server
+	#
+	if [ "$RUN_CLAIMSERVER" = true ]
+	then
+		NAME="clm_rcv.rb"
+		log_daemon_msg "Starting $NAME:"
+		start-stop-daemon --start --background -k 022 \
+			--chuid "$ORCAUSER":"$ORCAGROUP" \
+			--pidfile "$ORCAVAR"/"$NAME".pid --make-pidfile \
+			--exec "$CLAIM_SERVERDIR"/"$NAME" -- \
+			"$CLAIM_LISTEN_PORT" 
+		status=$?
+		log_end_msg $status
+
+		echo -n " $NAME"
+	fi
+
+	# done
+	echo "."
+	;;
+
+  stop)
+  	schema_check "$1"
+	log_daemon_msg "Stopping $DESC:"
+	logger "Stopping $DESC:"
+	#
+	# monitor
+	#
+	#if [ "$RUN_MONITOR" = true ]
+	#then
+		NAME=`basename "$MONITOR"`
+		log_daemon_msg "Stopping $NAME:"
+		start-stop-daemon --stop --oknodo --quiet \
+			--signal 10 \
+			--pidfile "$ORCAVAR"/"$NAME".pid \
+			--startas "$MONITOR"
+#		status=$?
+#		log_end_msg $status
+#		echo " $NAME"
+		#sleep 3
+		rm -f /tmp/wfc.*
+		rm -f /tmp/wfcc.*
+		rm -f /tmp/sysdata
+		rm -rf /tmp/blob
+#		$KILLALL monitor 2>/dev/null
+		$KILLALL wfc 2>/dev/null
+		$KILLALL aps 2>/dev/null
+		$KILLALL glserver 2>/dev/null
+		$KILLALL dbredirector 2>/dev/null
+		echo "killall end."
+		#sleep 3
+	#fi
+
+	#
+	# glauth
+	#
+	if [ "$RUN_GLAUTH" = true ]
+	then
+		NAME=`basename "$GLAUTH"`
+		log_daemon_msg "Stopping $NAME:"
+		start-stop-daemon --stop --oknodo --quiet \
+			--pidfile "$ORCAVAR"/"$NAME".pid \
+			--startas "$GLAUTH"
+		status=$?
+		log_end_msg $status
+		echo -n " $NAME"
+	fi
+
+	#
+	# claim server
+        #
+	if [ "$RUN_CLAIMSERVER" = true ]
+	then
+		NAME="clm_rcv.rb"
+		log_daemon_msg "Stopping $NAME:"
+		start-stop-daemon --stop --oknodo --quiet \
+		    --chuid "$ORCAUSER":"$ORCAGROUP" \
+		    --pidfile "$ORCAVAR"/"$NAME".pid --make-pidfile \
+		    --startas "$CLAIM_SERVERDIR"/"$NAME"
+		status=$?
+		log_end_msg $status
+		echo -n " $NAME"
+	fi
+
+	rm -fr "$ORCATMPDIR"
+
+	echo "."
+	;;
+
+  reload)
+
+  	schema_check "$1"
+	log_daemon_msg "Reloading $DESC: configuration files"
+	logger "Reloading $DESC: configuration files"
+	if [ "$RUN_GLAUTH" = true ]
+	then
+		NAME=`basename "$GLAUTH"`
+		log_daemon_msg "Reloading $NAME:"
+		start-stop-daemon --stop --signal 1 --quiet --pidfile \
+			"$ORCAVAR"/$"$NAME".pid --exec "$GLAUTH"
+		status=$?
+		log_end_msg $status
+	fi
+	if [ "$RUN_MONITOR" = true ]
+	then
+		NAME=`basename "$MONITOR"`
+		log_daemon_msg "Reloading $NAME:"
+		start-stop-daemon --stop --signal 1 --quiet --pidfile \
+		        "$ORCAVAR"/"$NAME".pid --exec "$MONITOR"
+		status=$?
+		log_end_msg $status
+		sleep 1
+	fi
+	echo "."
+
+  ;;
+
+  restart|force-reload)
+	#
+	#	If the "reload" option is implemented, move the "force-reload"
+	#	option to the "reload" entry above. If not, "force-reload" is
+	#	just the same as "restart".
+	#
+	log_daemon_msg "Restart $DESC"
+	logger "Restart $DESC"
+  	schema_check "$1"
+	$0 stop
+	sleep 3
+	$0 start
+	;;
+
+  *)
+	N=/etc/init.d/$NAME
+	# echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+	echo "Usage: $N {start|stop|restart|force-reload}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

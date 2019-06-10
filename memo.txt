@@ -1,0 +1,926 @@
+=マニュアル
+
+==CVS
+
+* 非再帰処理
+
+  cvs -d:ext:orca-m1.orca.med.or.jp:/cvs co -l official
+
+* pserver の使用方
+ cvs -d:pserver:anonymous@server_name login
+                                      checkout
+ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/openca login
+ cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/openca co modulename 
+
+* tag を指定してのチェックアウト
+
+ cvs ~~ co -r tagname modulename
+
+ コミットする時のLogに日付はいらない。 
+ * add ~~ とかで良い。
+
+* import
+
+ import時のvenderはNaClにする。 
+
+ cvs import modulename vender start
+
+* moduleの削除
+
+ moduleを削除するコマンドはない。
+ リポジトリのmoduleディレクトリを削除し、
+ CVSROOT/のvar_tagやhistoryからmoduleについて記述されている場面を削除する。
+
+* tag の打ち直し
+ tag を打つ前にコミットし忘れた時はコミット後、以下のコマンドでタグを付け直す。
+ cvs tag -F newfile
+
+* tag の削除
+
+ $ cvs tag -d TAG
+
+* 一度removeしたファイルの復帰
+
+コミット前ならば、addすれば復帰できる。
+コミットしてしまうとそのままaddしても出来ないので、一度
+古い作業リポジトリを別に チェックアウトし、そこからコピーする。
+
+* 古い日付のリポジトリの取得
+
+-Dオプションを使用する。
+
+ cvs -d:ext:raichu.netlab.jp:/home/gotoyuzo/ncvs co -D 2004/07/27 jmaca/orcaca/doc/manual
+
+* tarballの作成
+
+  $ cvs -d (CVSROOTが入る) export -d hoge-1.0 hoge
+  $ tar --exclude=CVS -czf hoge-1.0.tar.gz hoge
+
+* export
+
+  $ cvs -d$(CVSROOT) export -rHEAD module
+
+* ブランチ作成
+
+  1. ブランチ作成点にタグを付ける
+     $ cvs tag <tag>
+  2. ブランチを作成する
+     $ cvs tag -b <branchtag>
+  3. 作成したブランチで作業
+
+* ブランチ削除
+
+ $cvs tag -B -d hogehoge
+
+# non recursive checkout
+$ cvs co -l module
+
+# non recursive update
+$ cvs update -l directory
+
+* 日付を指定してdiff
+
+$ cvs diff -uN -rr_1_4_branch:"2010/03/15" -rr_1_4_branch:"2010/03/16"
+
+==locate
+ファイルの検索に便利そうだ。
+
+==cvs verison
+cd /usr/local/src/openca-0.9/
+cvs status -v CHANGES
+
+==xset -b
+
+==mozillaの日本語が出なくなる。
+とりあえず.mozillaを消す。
+Shift + Spaceで打てるようになる。何故？
+端末から起動しないと駄目だったりします。
+日本語の設定がおかしい。
+
+==cronへの登録のしかた
+%crontab -eでviが立ち上がるので
+分 時 日 月 曜日 コマンド
+という感じで打つべし打つべし。
+
+==後藤さんにいただいたありがたいプログラム
+./leakproxy.rb 10080 localhost:80
+
+ *必要なものruby
+ *使い方
+  プログラム起動後,ブラウザから最初のポートにアクセスすると、
+  サーバとクライアントのやりとりが画面に表示される。
+
+==netstat -atn
+空きポートを調べる。
+
+= apt関連
+
+* apt-get -s install package name
+インストールする前にシミュレートできる
+
+* apt-cache showpkg Ruby
+パッケージの依存関係などの情報を表示させる。
+
+* 
+  dpkg --get-selections > list
+  dpkg -set-selections < list
+  apt-get -f install
+
+* バージョンチェック
+  dpkg --compare-version xxx yyy
+
+* apt-ftp-archive
+
+　$ apt-ftparchive sources . | gzip -9c > Sources.gz
+　$ apt-ftparchive packages . | gzip -9c > Packages.gz
+　$ apt-ftparchive release . > Release
+
+== mpkiのanonymous ftp
+ユーザ名anonymous
+パスワードe-mail
+
+== gv
+woodyでgsをインストールすると日本語が表示されなくなる。
+(エラーが発生する。)
+gsをgs-aladinにリプレイスするとエラーはなくなるが文字化けする。
+もう一度gs-jaをインストールすると正常になる。
+gsパッケージはインストールしないほうが良い。
+
+== rd2html
+rd2 -r rd/rd2html-lib.rb --with-css=simple.css openssl.txt > openssl.html
+ rd2 -r rd/rd2html-lib.rb --with-css=simple.css -r rd/d2html-ext-lib.rb --headline-secno PKI3.txt > PKI.html
+
+== sudo su -
+sudoだと自分の環境変数を受け継いでしまう。
+sudo su -ならrootの環境変数でやってくれる。
+
+== tcpdump
+
+ログ取得
+ $ sudo /usr/sbin/tcpdump -n -X src or dst port 389 or port 636
+ 
+サイズの指定
+ $ sudo tcpdump -X -s 10000 -ni lo  tcp port 80
+
+ファイルに保存
+ $ sudo tcpdump -X -s 10000 -ni lo -w /tmp/log tcp port 80
+
+== syslog
+facility とlevelについて調べる。
+newlogging
+
+== vim
+
+C^v 範囲指定
+Shift i|d|x
+ESC
+
+マーク
+ mx
+
+マークジャンプ
+ `x
+
+== 10日以内に更新されたファイルを調べる
+find /etc -mtime -10 -a -type f | xargs ls --full-time
+
+
+stat(2) ctime mtime
+atime : 最終アクセス時刻
+ctime : 作成時刻 : 属性変更時に変更される 
+        owner, group ,link count , mode
+mtime : 更新時刻 : ファイル書き込み等があった時に変更される
+        mknod(2),  truncate(2), utime(2) and write(2)
+ls findのオプション
+
+find tmp/ -type f -ctime +150 -delete
+
+= debian package tips
+
+* パッケージの依存関係を調べる
+  * インストール済み？
+     $ dpkg --print-avail ruby
+  * インストール前
+     $ apt-cache depends perl
+  * 長いパッケージ名の検索
+     $ COLUMNS=130 dpkg -l | grep openoffice
+* パッケージに含まれるファイル名の表示  
+  * dpkg -L pkg
+* ビルドに依存するパッケージを取得する
+  * apt-get build-dep PACKAGE
+
+== yesコマンド
+
+は、(y/n)のように聞かれるコマンドで、かならずyと答えたい時に使います
+
+== スループット計測ツール
+ netperf
+
+== 日本語文書印刷
+
+ a2psj file.txt > file.ps
+ mpage -2 -Pmoto-pichu file.ps
+
+== sed の デリミタ
+/以外に :=%@ が使える。
+
+== postgres
+
+テーブル一覧
+
+homgr_development=> \dt
+ public | auditlogs         | table | homgr
+ public | facilities        | table | homgr
+ public | hosts             | table | homgr
+ public | hosttypes         | table | homgr
+ public | os                | table | homgr
+ public | prefectures       | table | homgr
+ public | schema_migrations | table | homgr
+ public | venders           | table | homgr
+
+テーブルスキーマ
+
+homgr_development=> \d auditlogs
+
+ id          | integer                     | not null default nextval('auditlogs_id_seq'
+::regclass)
+ event       | character varying(255)      | 
+ name        | character varying(255)      | 
+ dbhost      | character varying(255)      | 
+ vpnhost     | character varying(255)      | 
+ os          | character varying(255)      | 
+ serial      | integer                     | 
+ description | text                        | 
+ created_at  | timestamp without time zone | not null
+ updated_at  | timestamp without time zone | not null
+
+== ワンライナー例 oneline
+
+for var in *.rd; do sed -e "s:/opt/mica:/opt/orcac1:g" ${var} > tmp; yes|mv tmp ${var} ;done
+
+key=strndup ; grep -r $key * | awk '{print $1}' | tr "\n" " " | tr ":" " " > /tmp/clist ; 
+
+for i in `cat /tmp/clist` ; do sed -e "s:$key:StrnDup:g" ${i} > tmp; yes|mv tmp $i  ; echo $i ;done
+
+LD=`ls $LDDEF/*.ld|xargs -I{} basename {} .ld`
+
+== packet forwardの設定 
+# sysctl -w net/ipv4/ip_forward=1
+でforward有効、0でforward無効となる。
+
+== dmesg
+
+/var/log/dmesg => 起動時のHWのメッセージが保存される。
+/bin/dmesgコマンド => 現状のHWに関するメッセージが追記される。 
+
+== liloの切替え
+
+lilo.... と表示されている間にShiftキーを押す
+
+== diff
+ diff option old new 
+
+unified形式が推奨される。
+ diff -U1 とする。
+
+同じ構造のディレクトリのdiff
+
+  diff -ur dir1 dir2
+
+== 行の入れ換え
+
+* rev行毎に文字の順番を入れ換える。
+
+ abcdef => fedcba
+ ghijkl    lkjihg
+
+* tac catの逆
+
+ abcdef => ghijkl
+ ghijkl    abcdef
+
+== netselect
+
+netselect -vv `cat ~/tmp/debian-ftp-mirrors-jp.txt`
+
+== chroot
+
+# chroot /var/chroot/woody
+# mount -t proc proc /proc
+
+== floppyのフォーマット
+
+* DOS
+  $ sudo fdformat /dev/fd0h1440
+  $ sudo mkdosfs /dev/fd0h1440 
+
+== /etc/hosts
+
+再起動の必要なし
+
+== Xのlistenの方法
+/etc/X11/gdm/gdm.confの以下からnolistenをはずす。
+ command=/usr/bin/X11/X -deferglyphs 16 -nolisten tcp
+
+セッションを閉じて、gdmのログイン画面で Ctrl + Alt + Bs
+を押してXを再起動する。
+
+netstatでx11がLISTENであることを確認する。
+
+ $ netstat -at
+ ...
+ tcp        0      0 *:x11                   *:*                     LISTEN 
+
+localhostにXの転送を許可する。
+
+ xhost + localhost
+
+これで -display localhost:0.0でウインドウが表示できるようになる。
+
+== googleのサイト内検索
+
+キーワード site:ドメイン -不要語
+
+== strings
+
+実行ファイルの中身の表示できる部分を表示するコマンド。
+
+== manコマンド
+
+マニュアルページ一覧を表示する。
+  man -k キーワード
+
+== grub
+
+CDR-ROMを動かすために。
+
+# For booting the GNU Hurd
+title  Debian GNU/Linux, kernel-2.4.29
+root   (hd0,0)
+kernel /bzImage-2.4.29 ro root=/dev/hda6  hdc=ide-scsi
+
+== burn CD
+
+  $ sudo cdrecord -scanbus
+  $ sudo cdrecord -eject -v dev=0,0,0 speed=4 cdimage.iso
+  $ sudo cdrecord -v dev=0,0,0 blank=fast|all
+
+== gdb
+ ulimit -c unlimited
+ gdb -c core
+ file .exe
+ break [function num | file line num]
+ run args
+ s
+
+(gdb) set follow-fork-mode child
+(gdb) p dup2(open("/tmp/stderr",65,0664),2)
+
+== RCS
+ co
+ ci
+ RCSというディレクトリが必要。 
+
+== パーティションの追加
+ cfdisk
+ mkfs.ext3 /dev/hd
+
+== tar
+  tar cf - ./home | (cd /mnt/home; tar xpvf - )
+  cp -av /home/ /mnt
+
+== バイナリファイルの比較
+
+  od bin-file
+
+== default routeの追加
+ sudo /sbin/route add default gw 172.16.200.2 dev tap0
+
+== screen
+
+* config file
+  escape ^[^[
+  autodetach on
+  hardstatus alwayslastline "%w"
+  startup_message off
+
+* バッファの追加
+  * M-c
+
+* バッファの移動
+  * M-[buffer-number]
+
+* バッファの削除
+  * exitする
+
+* ESC
+  * ESC * 2
+
+* detach
+  * M-d
+
+* attach
+   * screen -r(resume)
+   * screen -x(multi session)
+
+= wanderlust
+ * i fetch new mail
+ * w write mail
+ * f forward mail
+ * e save mail
+ * C-c C-w insert .signature
+ * C-c C-x C-i attach
+ * move multipart, e , Method <return>, file name
+
+== GnuPG
+鍵作成
+ gpg --gen-key
+
+公開鍵出力
+ gpg --o pubkey.asc -a export mihara
+ gpg -a --export mihara
+
+ gpg -a --export-secret-keys mihara
+
+インポート
+ gpg --import --allow-secret-key-import file
+
+指紋出力
+ gpg --fingerprint mihara
+
+$ gpg -abs <署名対象ファイル(パッケージファイル、パッケージリスト)>
+
+Sylpheedで署名
+ * ツール
+     * PGP署名
+
+== OpenSSL
+RSA鍵の共通鍵暗号の復号化
+  o openssl rsa -in rsa-enc.pem -out rsa-noenc.pem
+
+> openssl pkcs12 -export -in newcert.pem -inkey newkey.pem -out newserver.pfx
+
+== カーネルパッケージの作成
+ 
+ % sudo apt-get install kernel-package
+ % cd kernel-src 
+ % make-kpkg  --rootcmd fakeroot --arch xen  kernel_image
+
+== ipv6でのURLの指定
+ % mozilla http://[2001:200:0:8002:203:47ff:fea5:3085]/  
+
+== Xen Tips
+
+以下のコマンドでメモリの割り当てを変更できる。
+
+  % xm balloon 0 384
+
+== OpenHRP
+nacl_mihara
+Ohnoh4gi
+
+== iptables on sarge
+
+iptablesのrcですが
+
+zcat /usr/share/doc/iptables/examples/oldinitdscript.gz > /etc/init.d/iptables
+chmod +x /etc/init.d/iptables
+cd /etc/rcS.d
+ln -s ../etc/init.d/iptables S40iptables
+
+これでwoodyと同じになりますよ
+
+== ssh鍵パスフレーズ変更
+
+  % ssh-keygen -p
+
+== subversion
+
+ # svn propset -R 'svn:ignore' '*' ./tmp/
+
+ # cd /var/svn
+ # mkdir module
+ # svnadmin create module
+ # chown -R www-data.www-data /var/svn
+
+ # vi /etc/apache2/mods-available/dav_svn.conf
+{{{
+<Location /svn/>
+  DAV svn
+  SVNParentPath /var/svn/
+  AuthType Basic
+  AuthName "Subversion Repository"
+  AuthUserFile /etc/apache2/dav_svn.passwd
+  <LimitExcept GET PROPFIND OPTIONS REPORT>
+    Require valid-user
+  </LimitExcept>
+</Location>
+}}}
+
+== trac
+
+ # aptitude install trac
+ # cd /var/trac
+ # mkdir module
+ # trac-admin module/ initenv
+ ... answer question
+ # chown -R www-data.www-data /var/svn
+
+ # vi /etc/apache2/site-available/trac
+{{{
+Alias /trac "/usr/share/trac/htdocs/"
+ScriptAlias /middle /usr/share/trac/cgi-bin/trac.cgi
+<Location "/middle">
+   SetEnv TRAC_ENV "/var/trac/middle"
+</Location>
+}}}
+
+etchの0.10.3では日本語リソースパッケージがないため，lennyの0.10.4を使用すると良い．
+
+
+webadmin
+ $ sudo easy_install http://svn.edgewall.com/repos/trac/sandbox/webadmin
+
+ $ sudo easy_install http://trac-hacks.org/svn/accountmanagerplugin/0.10
+
+
+
+AuthzWebadminPlugin
+ $ sudo easy_install http://trac-hacks.org/svn/authzwebadminplugin
+
+== XDMCP + Xvnc4
+
+ Remote GDM  ------> Local Xvnc -----> Local xvncviewer 
+              XDMCP
+
+ 1. GDMでXDMCPを有効にする．
+ 2. Xvncを-queryオプションつきで起動
+      $ Xvnc4 -query 192.168.1.35 -securitytypes=none :1 &
+ 3. xvncクライアントで2.に接続
+      $ xvnc4viewer :1
+      Viewer Free Edition 4.1.1 for X - built Feb 26 2007 20:38:07
+      Copyright (C) 2002-2005 RealVNC Ltd.
+      See http://www.realvnc.com for information on VNC.
+      Server: :1
+
+== LVM
+
+* lvscan
+* vgscan
+* lvextend
+* lvrename
+* lvremove
+
+mihara@othello:~$ sudo lvextend -L+5G /dev/vg/etch35-08
+  Extending logical volume etch35-08 to 10.00 GB
+  Logical volume etch35-08 successfully resized
+
+mihara@othello:~$ sudo resize_reiserfs /dev/vg/etch35-08
+
+== LVM物理ボリューム作成
+
+# pvcreate  /dev/hda3
+pvcreate -- physical volume "/dev/hda3" successfully created
+
+# vgcreate test /dev/hdb2 /dev/hda3
+
+== LVM + Xen
+
+!!! LVM論理ボリュームの作成
+
+mihara@unagi:~$ sudo lvcreate -L 4G -n das skx-vg
+  Logical volume "das" created
+mihara@unagi:~$ sudo lvcreate -L 1G -n das-swap skx-vg
+  Logical volume "das-swap" created
+mihara@unagi:~$
+
+!!! ファイルシステム作成
+
+mihara@unagi:~$ sudo mkfs.ext3 /dev/skx-vg/das
+mke2fs 1.40-WIP (14-Nov-2006)
+Filesystem label=
+OS type: Linux
+Block size=4096 (log=2)
+Fragment size=4096 (log=2)
+524288 inodes, 1048576 blocks
+52428 blocks (5.00%) reserved for the super user
+First data block=0
+Maximum filesystem blocks=1073741824
+32 block groups
+32768 blocks per group, 32768 fragments per group
+16384 inodes per group
+Superblock backups stored on blocks:
+        32768, 98304, 163840, 229376, 294912, 819200, 884736
+
+Writing inode tables: done
+Creating journal (32768 blocks): done
+Writing superblocks and filesystem accounting information: done
+
+This filesystem will be automatically checked every 35 mounts or
+180 days, whichever comes first.  Use tune2fs -c or -i to override.
+
+mihara@unagi:~/archive$ sudo mkswap /dev/skx-vg/das-swap
+...
+
+!!! LVMイメージへのetchのインストール
+
+debootstrapを利用してetchをインストールする．
+
+mihara@unagi:~/archive$ sudo mount /dev/skx-vg/das /mnt
+mihara@unagi:~/archive$ sudo debootstrap --arch i386 etch /mnt http://mirror.netlab.jp/debian
+
+mihara@usagi:~/archive$ sudo chroot /mnt
+
+/etc/hosts
+/etc/fstabの設定
+
+= firefox
+
+== vimperator
+
+    *  ctrl + f、ctrl + bでスクロール
+    * hjklで移動
+    * fでクイックリンク出して、ラベルを小文字で指定してタブで開く
+    * ctrl + nとctrl + pでタブ移動
+    * :tで新規タブオープン、:qでタブクローズ
+
+== nkf
+
+nkf -wm0 --overwrite
+
+== socat
+
+glclientとの通信を表示
+ $ socat -d -d -v TCP4-LISTEN:9999 TCP4:192.168.1.51:8000
+16進表示
+ $ socat -d -d -v -x TCP4-LISTEN:9999 TCP4:192.168.1.51:8000
+
+== 16進表示など
+
+ $ ruby -e 'p  "\x90\x33\x00\x00".unpack("l")' #=> 13200
+ 
+== ディスクの速度を調べる
+
+ bonnie++
+
+== ベンチマーク
+
+ hdbenchi
+
+== vmware
+
+ $ vmware-vdiskmanager -x 15GB CentOS4.vmdk
+
+== rdesktop
+
+ * WindowsXP
+ $ rdesktop -f -u mihara -p mihara jason
+
+== pdfnup 2 in 1 にする
+
+$ pdfnup --nup 2x2 foo.pdf
+$ pdfnup foo.pdf
+
+== pdftkでpdfをまとめる
+
+$ pdftk 1.pdf 2.pdf 3.pdf output all.pdf
+
+== wget
+
+$  wget -r -np --limit-rate=50k -A gz -A dsc -nd -nH http://ppa.launchpad.net/yusukemihara/ppa/ubuntu/pool/
+
+== reprepro
+
+for i in *.dsc ; do  reprepro -Smisc -Poptional  -Vb /sata1/ftp/pub/debian/ --ignore brokensignatures includedsc hardy4.4 $i ; done
+
+== iscsi
+
+ # sudo iscsiadm --mode discovery --type sendtargets --portal billy.priv.netlab.jp
+
+ # sudo iscsiadm  -m node -T iqn.1994-04.org.netbsd.iscsi-target:target5 --portal 192.168.1.17 -l
+ # sudo iscsiadm  -m node -T iqn.1994-04.org.netbsd.iscsi-target:target5 --portal 192.168.1.17 -u
+
+== ruby hex dump
+
+$ ruby -e 'p File.read("data.txt").chop.to_a.pack("H*")'
+
+== C言語でのプロファイル gprof
+
+ 1. gcc -pg hoge.c
+ 2. gprof a.out a.out.gmon
+
+== webrick http
+
+ruby -r webrick -e 'http = WEBrick::HTTPServer.new(:DocumentRoot=>"./",:Port => 8000); trap(:INT){http.shutdown}; http.start'
+
+== head & tail
+
+awk 'NR>=448 && NR<=449 {print $0}' action.c
+
+== virtualbox
+
+VBoxManage clonevdi old.vdi new.vdi
+
+== mysql
+
+> show tables;
+> show table status;
+> describe t_infection;
+
+mysqldump infection -u infection -p > ../data/infection.dump
+mysql infection -u infection -p < infection.dump
+
+mysqldump infection t_facility > hoge.dump
+
+mysql> create user test identified by 'test';
+
+mysql> grant select,insert,delete,update,create,drop,file, alter,index on *.* to infection@localhost identified by 'infection';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> flush privileges;
+
+.my.cnf
+--
+[client]
+host=localhost
+user=infection
+password=infection
+--
+
+mysql> select t1.facility_code,t4.ipaddress,t3.create_datetime from t_facility as t1 inner join t_patient as t2 inner join t_infection as t3 inner join t_infection_log as t4 on (t1.id = t2.facility_id and t2.id = t3.patient_id and t3.id = t4.infection_id) where DATE_SUB(curdate(), interval 1 day) <= t3.create_datetime group by t1.facility_code order by t3.create_datetime;
+
+
+テーブル名変更
+
+>alter table t_agreement2 rename to t_agreement
+
+== quilt
+
+QUILT_PATCHES=debian/patches
+
+quilt の使い方
+詳しくは、quilt --help でどうぞ。
+
+quilt は、
+
+$ quilt command [...]
+
+という書式で使う。各 command ごとのヘルプは
+
+$ quilt command -h 
+
+で見られる。
+
+よく使うコマンドは、
+
+$ quilt push 
+パッチのスタックを一つ進める。-a で series すべてのパッチをあてる。
+
+$ quilt pop 
+パッチのスタックを一つ戻す。-a で series すべてのパッチをはずす。
+
+$ quilt add ［ファイル名］
+そのパッチで扱うファイルを登録する。このあとそのファイルを編集すると、パッチへの取り込み対象になる。
+
+$ quilt edit ［ファイル名］
+add して $EDITOR で編集する。
+
+$ quilt new ［パッチ名］
+新しいパッチを作る。
+
+$ quilt refresh 
+更新をパッチへ反映する。
+
+== ctrl button
+
+setxkbmap -option "ctrl:nocaps"
+
+== monsiaj openjdk ssl
+
+$ rm -rf monsiaj* ; 
+scp six:NetBeansProjects/monsiaj/dist/monsiaj-bin-20120820.zip . ; 
+unzip monsiaj-bin-20120820.zip ; 
+java -Djavax.net.ssl.trustStorePassword=123456 -jar monsiaj-bin-20120820/pandaclient.jar
+
+trustStorePath:/home/mihara/.java/deployment/security/trusted.jssecacerts
+
+== chef
+
+$ knife node list
+
+レシピやロール等の追加
+$ knife node run_list add [NODE] [ENTRY]
+
+ssh
+$ knife ssh "role:u1204test" -x oruser -Poruser hostname
+
+cookbook作成
+% knife cookbook create MYCOOKBOOK
+
+coockbookアップ
+% knife cookbook upload COOKBOOK
+
+% knile role edit u1204test
+
+% sudo knife bootstrap u1204test21 -x oruser -P oruser --sudo
+
+% ruby -e '22.upto(40){ |i| puts `knife node run_list add u1204test#{i} "role[u1204test]"` } '
+
+== git
+
+== tag
+
+git tag -a REL_20140124 -m 'moge'
+git push origin REL_20140124
+
+=== ローカルの変更を戻す
+
+git checkout .
+git checkout file
+
+=== ブランチ作成
+
+git checkout -b mogemoge
+
+=== マージ
+
+git checkout master
+git merge mogemoge
+
+== マージ取り消し
+
+git reset --hard
+
+=== ブランチ削除
+
+git branch -d mogemoge
+
+=== ブランチ一覧
+
+git branch
+
+=== 直前のコミットログの修正
+
+git commit --amend -m "moge"
+
+=== tarball
+
+% git archive master > /tmp/homgr.tar
+% git archive --prefix=panda/ master |gzip > panda.tar.gz
+
+== check remote repository
+
+% git fetch origin
+% git diff origin/master
+
+=== date checkout?
+
+% git log
+% git reset --hard sha1
+
+----
+
+git config --global user.email "Your email"
+git config --global user.name "Your name"
+
+$ git init
+$ git clone --bare /path/to/git/working /path/to/git/repos.git
+
+# 現在のリモートリポジトリを確認
+$ git remote -v
+origin git@old.example.com:project.git (fetch)
+origin git@old.example.com:project.git (push)
+
+# リモートリポジトリを新しいリポジトリに変更
+$ git remote set-url origin git@new.example.com:project.git
+
+# 変更されたことを確認
+$ git remote -v
+origin git@new.example.com:project.git (fetch)
+origin git@new.example.com:project.git (push)
+
+# 新しいリポジトリにそれぞれ push
+$ git push origin master
+$ git push origin hogehoge # 他にもブランチがあれば
+$ git push --tags
+
+
+http://git-scm.com/book/ja/Git-%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC-%E3%83%97%E3%83%AD%E3%83%88%E3%82%B3%E3%83%AB
+
+HTTP/S プロトコル
+最後は HTTP プロトコルです。HTTP あるいは HTTPS のうれしいところは、準備するのが簡単だという点です。基本的に、必要な作業といえば Git リポジトリを HTTP のドキュメントルート以下に置いて post-update フックを用意することだけです (Git のフックについては第 7 章で詳しく説明します)。これで、ウェブサーバー上のその場所にアクセスできる人ならだれでもリポジトリをクローンできるようになります。リポジトリへの HTTP での読み込みアクセスを許可するには、こんなふうにします。
+
+$ cd /var/www/htdocs/
+$ git clone --bare /path/to/git_project gitproject.git
+$ cd gitproject.git
+$ mv hooks/post-update.sample hooks/post-update
+$ chmod a+x hooks/post-update
+これだけです。Git に標準でついてくる post-update フックは、適切なコマンド (git update-server-info) を実行して HTTP でのフェッチとクローンをうまく動くようにします。このコマンドが実行されるのは、このリポジトリに対して SSH 越しでのプッシュがあったときです。その他の人たちがクローンする際には次のようにします。
+
+== ufw
+
+sudo ufw status
+sudo ufw default deny
+sudo ufw allow proto tcp from 192.168.1.0/24 to any port 22
+
+ruby -r ipaddr -e 'p IPAddr.new("202.238.143.240/28").include?("202.238.143.230")'

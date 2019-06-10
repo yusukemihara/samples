@@ -1,0 +1,14 @@
+json {
+	int1	int;
+	char1	varchar(256);
+	number1	number(8,2);
+	record1	{
+		int2	int;
+		char2	varchar(256);
+	};
+	intarray1	int[10];
+	recordarray1	{
+		int3	int;
+		char3	varchar(256);
+	}[10];
+};

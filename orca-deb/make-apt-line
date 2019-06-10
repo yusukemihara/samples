@@ -1,0 +1,3 @@
+#!/bin/sh
+apt-ftparchive packages . | gzip -9c > Packages.gz
+apt-ftparchive release > Release

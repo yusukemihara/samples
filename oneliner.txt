@@ -1,0 +1,7 @@
+ruby -r zlib -e 'File.open("/tmp/orcam.ttf.zz","w"){|io| io.write(Zlib::Deflate.deflate(File.read("/tmp/orcam.ttf"))) } '
+
+grep byte src/*.{c,h} | ruby -ne '$_.match(/^(.*):/) ; puts $1' | xargs sed -i  's/byte/unsigned char/g'
+
+grep "\"types.h\"" **/*.{h,c} | ruby -ne '$_.match(/^(.*):/) ; puts $1' | xargs sed -i '/"types.h"/d'
+
+ps ax | grep /sbin/glauth | grep -v grep | grep -v monitor | awk '{for(i=5;i<NF;i++){printf("%s ",$i)};printf("\n")}' >> /tmp/monitor.sh

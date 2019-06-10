@@ -1,0 +1,8 @@
+json2mogemoge {
+	int1	int;
+	char1	varchar(256);
+	record1	{
+		int2	int;
+		char2	varchar(256);
+	};
+};

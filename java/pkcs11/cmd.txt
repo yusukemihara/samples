@@ -1,0 +1,1 @@
+java -cp . -Djava.security.debug=sunpkcs11 TestPKCS11 ca.pem https://dhcp157.priv.netlab.jp:3000
