@@ -1,0 +1,16 @@
+#!/bin/bash
+
+trap 'exit 0' 1 10 11 15 
+
+APS=/usr/lib/panda/sbin/aps
+APS=/tmp/opt/sbin/aps
+ARGS=`echo $@ | sed -e 's/ /_/g'`
+
+echo $@ | grep 'orca21'
+if [ $? = 0 ]
+then
+  valgrind --leak-check=full $APS $@ 2>&1 | tee /tmp/aps.$$.txt
+  #$APS $@ 2>&1 | tee /tmp/aps.$$.txt
+else
+  $APS $@
+fi

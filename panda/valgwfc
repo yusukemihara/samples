@@ -1,0 +1,3 @@
+#!/bin/bash
+
+valgrind --leak-check=full /usr/lib/panda/sbin/wfc $@ 2>&1 | tee /tmp/valgwfc.txt
